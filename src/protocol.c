@@ -1,17 +1,17 @@
 #include "protocol.h"
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
 
 int try_extract_message(Client *c, char *out_msg) {
     c->inbuf[c->inlen] = '\0';
 
     char *p = strstr(c->inbuf, "\r\n\r\n");
-    int delim_len = 4;
-    if (!p) {
-        p = strstr(c->inbuf, "\n\n");
-        delim_len = 2;
-    }
     if (!p) return 0;
 
-    int msg_len = p - c->inbuf + delim_len;
+    int delim_len = 4;
+    int msg_len = (int)(p - c->inbuf) + delim_len;
+
     memcpy(out_msg, c->inbuf, msg_len);
     out_msg[msg_len] = '\0';
 
@@ -21,37 +21,69 @@ int try_extract_message(Client *c, char *out_msg) {
     return 1;
 }
 
-
 static void trim(char *s){
     while(*s==' '||*s=='\t') memmove(s,s+1,strlen(s));
     int n=strlen(s);
     while(n>0 && (s[n-1]==' '||s[n-1]=='\t'||s[n-1]=='\r'||s[n-1]=='\n')) s[--n]=0;
 }
 
-int parse_request(const char *msg, Request *req) {
-    memset(req, 0, sizeof(*req));
+int parse_command(const char *msg, char *out_cmd){
+    // lấy dòng đầu tiên
+    const char *end = strchr(msg, '\n');
+    int len = end ? (end - msg) : (int)strlen(msg);
 
-    char buf[MSG_MAX];
-    strncpy(buf, msg, MSG_MAX-1);
+    char firstline[128];
+    if(len >= (int)sizeof(firstline)) len = sizeof(firstline)-1;
+    memcpy(firstline, msg, len);
+    firstline[len] = 0;
+    trim(firstline);
 
-    char *line = strtok(buf, "\n");
-    if (!line) return 0;
-
-    if (sscanf(line, "CMD %31s", req->cmd) != 1) return 0;
-
-    while ((line = strtok(NULL, "\r\n")) != NULL) {
-        if (strlen(line)==0) break;
-        char *colon = strchr(line, ':');
-        if (!colon) continue;
-        *colon = 0;
-        char *key = line;
-        char *val = colon+1;
-        trim(key); trim(val);
-        strncpy(req->keys[req->count], key, 63);
-        strncpy(req->values[req->count], val, 255);
-        req->count++;
-    }
+    // format phải là CMD <cmd>
+    if(sscanf(firstline, "CMD %31s", out_cmd) != 1) return 0;
     return 1;
+}
+
+/*
+ find_field:
+  - Tìm dòng "Key: Value" trong msg
+  - Copy Value ra out_val
+  - Trả về out_val nếu tìm thấy, NULL nếu không
+*/
+const char* find_field(const char *msg, const char *key, char *out_val, int maxlen){
+    // duyệt từng dòng
+    const char *p = msg;
+    int keylen = strlen(key);
+
+    while(*p){
+        // lấy 1 dòng [p, line_end)
+        const char *line_end = strchr(p, '\n');
+        int linelen = line_end ? (line_end - p) : (int)strlen(p);
+
+        if(linelen <= 1){ // dòng trống -> hết header
+            break;
+        }
+
+        // copy dòng ra buffer tạm để xử lý
+        char line[512];
+        int cplen = linelen;
+        if(cplen >= (int)sizeof(line)) cplen = sizeof(line)-1;
+        memcpy(line, p, cplen);
+        line[cplen] = 0;
+        trim(line);
+
+        // check prefix "Key:"
+        if(strncasecmp(line, key, keylen)==0 && line[keylen]==':'){
+            char *val = line + keylen + 1; // sau ':'
+            trim(val);
+            strncpy(out_val, val, maxlen-1);
+            out_val[maxlen-1]=0;
+            return out_val;
+        }
+
+        if(!line_end) break;
+        p = line_end + 1;
+    }
+    return NULL;
 }
 
 void build_response(char *out, int code, const char *message, const char *extra) {
@@ -60,4 +92,3 @@ void build_response(char *out, int code, const char *message, const char *extra)
     else
         sprintf(out, "RES %d %s\r\n\r\n", code, message);
 }
-
