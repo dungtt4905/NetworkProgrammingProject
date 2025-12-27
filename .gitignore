@@ -1,0 +1,6 @@
+data/comments.jsonl
+data/members.jsonl
+data/projects.jsonl
+data/tasks.jsonl
+data/users.jsonl
+logs/server.log

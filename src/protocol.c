@@ -28,7 +28,7 @@ static void trim(char *s){
 }
 
 int parse_command(const char *msg, char *out_cmd){
-    // lấy dòng đầu tiên
+    
     const char *end = strchr(msg, '\n');
     int len = end ? (end - msg) : (int)strlen(msg);
 
@@ -38,32 +38,26 @@ int parse_command(const char *msg, char *out_cmd){
     firstline[len] = 0;
     trim(firstline);
 
-    // format phải là CMD <cmd>
+    
     if(sscanf(firstline, "CMD %31s", out_cmd) != 1) return 0;
     return 1;
 }
 
-/*
- find_field:
-  - Tìm dòng "Key: Value" trong msg
-  - Copy Value ra out_val
-  - Trả về out_val nếu tìm thấy, NULL nếu không
-*/
 const char* find_field(const char *msg, const char *key, char *out_val, int maxlen){
-    // duyệt từng dòng
+   
     const char *p = msg;
     int keylen = strlen(key);
 
     while(*p){
-        // lấy 1 dòng [p, line_end)
+        
         const char *line_end = strchr(p, '\n');
         int linelen = line_end ? (line_end - p) : (int)strlen(p);
 
-        if(linelen <= 1){ // dòng trống -> hết header
+        if(linelen <= 1){ 
             break;
         }
 
-        // copy dòng ra buffer tạm để xử lý
+        
         char line[512];
         int cplen = linelen;
         if(cplen >= (int)sizeof(line)) cplen = sizeof(line)-1;
@@ -71,9 +65,9 @@ const char* find_field(const char *msg, const char *key, char *out_val, int maxl
         line[cplen] = 0;
         trim(line);
 
-        // check prefix "Key:"
+        
         if(strncasecmp(line, key, keylen)==0 && line[keylen]==':'){
-            char *val = line + keylen + 1; // sau ':'
+            char *val = line + keylen + 1; 
             trim(val);
             strncpy(out_val, val, maxlen-1);
             out_val[maxlen-1]=0;
