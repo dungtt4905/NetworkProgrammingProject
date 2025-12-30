@@ -93,15 +93,15 @@ static void dispatch(Client *c, const char *msg)
         handle_search_project(c, msg, res);
     else if (strcmp(cmd, "CREATE_PROJECT") == 0)
         handle_create_project(c, msg, res);
-    else if (strcmp(cmd, "ADD_MEMBER") == 0) // TODO 15/12
+    else if (strcmp(cmd, "ADD_MEMBER") == 0)
         handle_add_member(c, msg, res);
     else if (strcmp(cmd, "LIST_MEMBERS") == 0)
         handle_list_members(c, msg, res);
-    else if (strcmp(cmd, "LIST_TASKS") == 0) // TODO 15/12
+    else if (strcmp(cmd, "LIST_TASKS") == 0)
         handle_list_tasks(c, msg, res);
     else if (strcmp(cmd, "CREATE_TASK") == 0)
         handle_create_task(c, msg, res);
-    else if (strcmp(cmd, "ASSIGN_TASK") == 0) // TODO 15/12
+    else if (strcmp(cmd, "ASSIGN_TASK") == 0)
         handle_assign_task(c, msg, res);
     else if (strcmp(cmd, "UPDATE_TASK_STATUS") == 0)
         handle_update_task_status(c, msg, res);

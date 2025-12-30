@@ -64,20 +64,18 @@ static void show_response(int sock)
     }
 }
 
-// Check if response indicates an error (status code != 200 and != 201)
-static int is_error_response(const char *resp)
+static int check_error_response(const char *resp)
 {
-    // Response format: "RES <code> <message>" (may have leading newlines)
     const char *p = strstr(resp, "RES ");
     if (p == NULL)
-        return 0; // No RES found, assume not an error
-    
+        return 0;
+
     int code = 0;
     if (sscanf(p, "RES %d", &code) == 1)
     {
         return (code != 200 && code != 201);
     }
-    return 0; // If cannot parse, assume not an error
+    return 0;
 }
 
 static void menu()
@@ -106,17 +104,22 @@ static void menu()
 
 int main(int argc, char **argv)
 {
-    const char *ip = "127.0.0.1";
-    int port = 9090;
-    if (argc >= 2)
-        ip = argv[1];
-    if (argc >= 3)
-        port = atoi(argv[2]);
-
-    int sock = connect_server(ip, port);
-    if (sock < 0)
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <ip> <port>\n", argv[0]);
+        fprintf(stderr, "Example: %s 127.0.0.1 9090\n", argv[0]);
         return 1;
-
+    }
+ 
+    const char *ip = argv[1];
+    int port = atoi(argv[2]);
+    if (port <= 0 || port > 65535) {
+        fprintf(stderr, "Invalid port: %s\n", argv[2]);
+        return 1;
+    }
+ 
+    int sock = connect_server(ip, port);
+    if (sock < 0) return 1;
+ 
     printf("Connected to server %s:%d\n", ip, port);
 
     while (1)
@@ -216,7 +219,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             printf("\n----- CURRENT MEMBERS -----\n%s", member_resp);
-            if (is_error_response(member_resp))
+            if (check_error_response(member_resp))
             {
                 printf("Cannot proceed due to error above.\n");
                 break;
@@ -327,7 +330,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             printf("\n----- TASKS -----\n%s", task_resp);
-            if (is_error_response(task_resp))
+            if (check_error_response(task_resp))
             {
                 printf("Cannot proceed due to error above.\n");
                 break;
@@ -343,7 +346,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             printf("\n----- MEMBERS -----\n%s", member_resp);
-            if (is_error_response(member_resp))
+            if (check_error_response(member_resp))
             {
                 printf("Cannot proceed due to error above.\n");
                 break;
@@ -407,7 +410,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             printf("\n----- TASKS -----\n%s", task_resp);
-            if (is_error_response(task_resp))
+            if (check_error_response(task_resp))
             {
                 printf("Cannot proceed due to error above.\n");
                 break;
@@ -475,7 +478,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             printf("\n----- TASKS -----\n%s", task_resp);
-            if (is_error_response(task_resp))
+            if (check_error_response(task_resp))
             {
                 printf("Cannot proceed due to error above.\n");
                 break;

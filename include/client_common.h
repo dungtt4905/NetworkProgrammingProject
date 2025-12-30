@@ -20,7 +20,6 @@ static int recv_response(int sock, char *out, int maxlen){
         out[len] = 0;
 
         
-        if(len >= 2 && out[len-1]=='\n' && out[len-2]=='\n') break;
         if(len >= 4 && out[len-1]=='\n' && out[len-2]=='\r' &&
                        out[len-3]=='\n' && out[len-4]=='\r') break;
     }
@@ -34,7 +33,6 @@ static void trim_newline(char *s){
 
 static void input_line(const char *prompt, char *buf, int maxlen){
     printf("%s", prompt);
-    fflush(stdout);
     if(fgets(buf, maxlen, stdin)==NULL) buf[0]=0;
     trim_newline(buf);
 }

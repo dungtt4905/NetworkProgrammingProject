@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-// add database
+
 #define MAX_USERS 1000
 #define MAX_PROJECTS 1000
 #define MAX_MEMBERS 5000
