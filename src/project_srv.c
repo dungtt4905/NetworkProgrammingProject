@@ -33,8 +33,8 @@ int handle_list_projects(Client *c, const char *msg, char *res)
                 (members[i].role == ROLE_OWNER) ? "OWNER" : "MEMBER";
 
             pos += snprintf(extra + pos, sizeof(extra) - pos,
-                            "P%d: %d|%s|%s\r\n",
-                            count + 1, p->id, p->name, role_str);
+                            "P%d: %d|%s|%s|%d\r\n",
+                            count + 1, p->id, p->name, role_str, p->status);
             count++;
             if (pos >= (int)sizeof(extra))
                 break;
@@ -79,8 +79,8 @@ int handle_search_project(Client *c, const char *msg, char *res)
             const char *owner_name = owner ? owner->username : "unknown";
 
             pos += snprintf(listbuf + pos, sizeof(listbuf) - pos,
-                            "P%d: %d|%s|%s\r\n",
-                            count + 1, projects[i].id, projects[i].name, owner_name);
+                            "P%d: %d|%s|%s|%d\r\n",
+                            count + 1, projects[i].id, projects[i].name, owner_name, projects[i].status);
             count++;
             if (pos >= (int)sizeof(listbuf))
                 break;
