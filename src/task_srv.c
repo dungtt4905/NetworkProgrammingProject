@@ -277,13 +277,13 @@ int handle_update_task_status(Client *c, const char *msg, char *res)
         return 0;
     }
 
-    TaskStatus newst = (TaskStatus)status_val;
-
-    if (me->role == ROLE_MEMBER && t->assignee_id != c->user_id)
+    if (me->role != ROLE_OWNER)
     {
-        build_response(res, 403, "Forbidden (not assignee)", NULL);
+        build_response(res, 403, "Forbidden (owner only)", NULL);
         return 0;
     }
+
+    TaskStatus newst = (TaskStatus)status_val;
 
     if (t->status == DONE && newst == DONE)
     {

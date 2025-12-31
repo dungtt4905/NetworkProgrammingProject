@@ -89,11 +89,12 @@ static void menu()
     printf("5. Search project by name\n");
     printf("6. Create project (owner)\n");
     printf("7. Add member to project (owner)\n");
-    printf("8. List tasks in project\n");
-    printf("9. Create task (owner)\n");
-    printf("10. Assign task (owner)\n");
-    printf("11. Update task status\n");
-    printf("12. Comment task\n");
+    printf("8. Update project status (owner)\n");
+    printf("9. List tasks in project\n");
+    printf("10. Create task (owner)\n");
+    printf("11. Assign task (owner)\n");
+    printf("12. Update task status (owner)\n");
+    printf("13. Comment task\n");
 
     if (logged_in)
         printf("Logged in as: %s | session=%s\n", current_user, session);
@@ -258,6 +259,49 @@ int main(int argc, char **argv)
                 break;
             }
 
+            printf("\n----- STATUS OPTIONS -----\n");
+            printf("0: TODO\n");
+            printf("1: IN PROGRESS\n");
+            printf("2: DONE\n");
+            input_line("Enter status number: ", b, sizeof(b));
+            int status = atoi(b);
+            if (status < 0 || status > 2)
+            {
+                printf("Invalid status.\n");
+                break;
+            }
+
+            snprintf(req, sizeof(req),
+                     "CMD UPDATE_PROJECT_STATUS\r\n"
+                     "ProjectId: %d\r\n"
+                     "Status: %d\r\n"
+                     "\r\n",
+                     proj_id, status);
+            send_req(sock, req);
+            show_response(sock);
+            break;
+        }
+
+        case 9:
+        {
+            snprintf(req, sizeof(req), "CMD LIST_PROJECTS\r\n\r\n");
+            send_req(sock, req);
+            char proj_resp[CBUF];
+            if (!recv_response(sock, proj_resp, sizeof(proj_resp)))
+            {
+                printf("Server closed connection.\n");
+                exit(0);
+            }
+            printf("\n----- YOUR PROJECTS -----\n%s", proj_resp);
+
+            input_line("Enter project ID: ", a, sizeof(a));
+            int proj_id = atoi(a);
+            if (proj_id <= 0)
+            {
+                printf("Invalid project ID.\n");
+                break;
+            }
+
             snprintf(req, sizeof(req),
                      "CMD LIST_TASKS\r\nProjectId: %d\r\n\r\n", proj_id);
             send_req(sock, req);
@@ -265,7 +309,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        case 9:
+        case 10:
         {
             snprintf(req, sizeof(req), "CMD LIST_PROJECTS\r\n\r\n");
             send_req(sock, req);
@@ -300,7 +344,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        case 10:
+        case 11:
         {
             snprintf(req, sizeof(req), "CMD LIST_PROJECTS\r\n\r\n");
             send_req(sock, req);
@@ -380,7 +424,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        case 11:
+        case 12:
         {
             snprintf(req, sizeof(req), "CMD LIST_PROJECTS\r\n\r\n");
             send_req(sock, req);
@@ -448,7 +492,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        case 12:
+        case 13:
         {
             snprintf(req, sizeof(req), "CMD LIST_PROJECTS\r\n\r\n");
             send_req(sock, req);

@@ -38,6 +38,7 @@ typedef struct
     int id;
     char name[64];
     int owner_id;
+    TaskStatus status;
 } Project;
 
 typedef struct

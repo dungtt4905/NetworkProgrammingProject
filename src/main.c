@@ -97,6 +97,8 @@ static void dispatch(Client *c, const char *msg)
         handle_add_member(c, msg, res);
     else if (strcmp(cmd, "LIST_MEMBERS") == 0)
         handle_list_members(c, msg, res);
+    else if (strcmp(cmd, "UPDATE_PROJECT_STATUS") == 0)
+        handle_update_project_status(c, msg, res);
     else if (strcmp(cmd, "LIST_TASKS") == 0)
         handle_list_tasks(c, msg, res);
     else if (strcmp(cmd, "CREATE_TASK") == 0)

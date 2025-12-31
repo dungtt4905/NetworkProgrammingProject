@@ -132,6 +132,7 @@ int handle_create_project(Client *c, const char *msg, char *res)
     strncpy(p.name, name, sizeof(p.name) - 1);
     p.name[sizeof(p.name) - 1] = 0;
     p.owner_id = c->user_id;
+    p.status = TODO;
 
     projects[projects_count++] = p;
     storage_save_projects();
@@ -258,5 +259,61 @@ int handle_list_members(Client *c, const char *msg, char *res)
     snprintf(extra, sizeof(extra), "MemberCount: %d\r\n%s", mcount, memberbuf);
 
     build_response(res, 200, "List members success", extra);
+    return 0;
+}
+
+int handle_update_project_status(Client *c, const char *msg, char *res)
+{
+    char pid_str[32], status_str[32];
+
+    if (!find_field(msg, "ProjectId", pid_str, sizeof(pid_str)) ||
+        !find_field(msg, "Status", status_str, sizeof(status_str)))
+    {
+        build_response(res, 400, "Missing field", NULL);
+        return 0;
+    }
+
+    int pid = atoi(pid_str);
+    int status_val = atoi(status_str);
+
+    if (pid <= 0)
+    {
+        build_response(res, 400, "Invalid project ID", NULL);
+        return 0;
+    }
+
+    if (status_val < 0 || status_val > 2)
+    {
+        build_response(res, 422, "Status invalid", NULL);
+        return 0;
+    }
+
+    Project *p = find_project_by_id(pid);
+    if (!p)
+    {
+        build_response(res, 404, "Project not found", NULL);
+        return 0;
+    }
+
+    Membership *me = find_membership(pid, c->user_id);
+    if (!me)
+    {
+        build_response(res, 403, "Forbidden (not member)", NULL);
+        return 0;
+    }
+
+    if (me->role != ROLE_OWNER)
+    {
+        build_response(res, 403, "Forbidden (owner only)", NULL);
+        return 0;
+    }
+
+    TaskStatus newst = (TaskStatus)status_val;
+    p->status = newst;
+    storage_save_projects();
+
+    build_response(res, 200, "Update project status success", NULL);
+    log_info("UPDATE_PROJECT_STATUS projectId=%d status=%d byUserId=%d",
+             p->id, newst, c->user_id);
     return 0;
 }

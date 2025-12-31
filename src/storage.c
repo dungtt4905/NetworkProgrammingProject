@@ -92,6 +92,9 @@ static int load_projects()
             continue;
         extract_str(line, "name", p.name, sizeof(p.name));
         extract_int(line, "owner_id", &p.owner_id);
+        int st = 0;
+        extract_int(line, "status", &st);
+        p.status = (TaskStatus)st;
         projects[projects_count++] = p;
     }
     fclose(f);
@@ -344,8 +347,8 @@ int storage_save_projects()
         return 0;
     for (int i = 0; i < projects_count; i++)
     {
-        fprintf(f, "{\"id\":%d,\"name\":\"%s\",\"owner_id\":%d}\n",
-                projects[i].id, projects[i].name, projects[i].owner_id);
+        fprintf(f, "{\"id\":%d,\"name\":\"%s\",\"owner_id\":%d,\"status\":%d}\n",
+                projects[i].id, projects[i].name, projects[i].owner_id, projects[i].status);
     }
     fclose(f);
     return 1;
